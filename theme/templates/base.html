@@ -7,9 +7,29 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge"> {% tailwind_css %}
-</head>
-<h1 class="text-5xl text-red-400">Django + Tailwind = ❤️</h1>
-<main> {%block content %} {% endblock content %} </main>
+</head> 
+{% block nav %}{% include 'navbar.html' %}{% endblock nav %} 
+
+<div class="flex">
+	<div class="m-auto">
+
+	{% if messages %} 
+		{% for message in messages%}
+		<div class="bg-green-200 border-green-600 text-green-600 border-l-4 p-4" role="alert">
+			<p class="font-bold">Success</p>
+			<p>{{ message }} </p>
+		</div>
+		{% endfor%} 
+	{% endif %}
+
+	<main class="mt-2"> {% block content %} {% endblock content %} </main>
+	</div>
+</div>
+
+
+
+
+
 </div>
 </body>
 
