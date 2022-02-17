@@ -1,4 +1,4 @@
 import random
 
-def generate_btc():
-  return random.uniform(1,10)
+def generate_random_number(max_value):
+  return random.uniform(1,max_value)
