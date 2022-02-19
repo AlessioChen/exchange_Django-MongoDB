@@ -24,6 +24,8 @@ class Order(models.Model):
   order_status = models.CharField(max_length=10, choices=(('pending', 'pending'), ('completed', 'completed')))
   price = models.FloatField()
   btc_quantity = models.FloatField()
+  created = models.DateTimeField(auto_now_add=True)
+  modified = models.DateTimeField(auto_now=True)
 
 class Trade(models.Model):
   _id = ObjectIdField()

@@ -1,5 +1,4 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
@@ -9,9 +8,6 @@ from .forms import UserRegisterForm
 from mainApp.models import Wallet
 
 
-@login_required
-def home(request):
-    return render(request, 'users/home.html')
 
 
 def register(request):
@@ -19,7 +15,7 @@ def register(request):
     # POST we save the data
 
     context = {}
-    print(request.method)
+    
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
         if form.is_valid():
