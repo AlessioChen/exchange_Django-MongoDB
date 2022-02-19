@@ -18,7 +18,7 @@ def home(request):
 
 @login_required
 def sell(request):
-    form = {}
+    form = OrderCreationForm()
     if request.method == "POST":
         form = OrderCreationForm(request.POST) 
         if form.is_valid(): 
@@ -36,10 +36,39 @@ def sell(request):
 
             user_wallet.btc_balance -= btc_quantity
             user_wallet.save()
-            messages.success(request, 'Your order has been placed!')
+            messages.success(request, 'Your sell order has been placed!')
             return redirect('home')
-    else: 
-        form = OrderCreationForm()
+
+    context = {
+        'form': form, 
+        'orders': Order.objects.filter(user = request.user), 
+        'balance': getUserBalance(request.user)
+    }
+   
+    return render(request, 'mainApp/order.html', context)
+
+@login_required
+def buy(request):
+    form = OrderCreationForm()
+    if request.method == "POST":
+        form = OrderCreationForm(request.POST) 
+        if form.is_valid(): 
+            user_wallet = Wallet.objects.filter(user = request.user).first()
+            price = form.cleaned_data['price']
+            if not canBuy(user_wallet, price ):
+               messages.error(request, 'You do not have enouth $ to buy ')
+               return redirect('home')
+            
+            order = form.save()
+            order.user = request.user
+            order.type="buy"
+            order.order_status = "pending"
+            order.save()
+
+            user_wallet.money_balance -= price
+            user_wallet.save()
+            messages.success(request, 'Your buy order has been placed!')
+            return redirect('home')
 
     context = {
         'form': form, 
@@ -59,10 +88,14 @@ def getUserBalance(user):
 
     return balance
 
-
-
 def canSell(user_wallet, btc_quantity):
     if(user_wallet.btc_balance < btc_quantity):
+        return False 
+
+    return True 
+
+def canBuy(user_wallet, price):
+    if(user_wallet.money_balance < price):
         return False 
 
     return True 
