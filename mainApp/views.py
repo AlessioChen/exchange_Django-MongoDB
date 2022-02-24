@@ -1,10 +1,11 @@
-from datetime import datetime
+
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from mainApp.forms import OrderCreationForm
-from mainApp.models import Order, Transaction, Wallet
+from mainApp.models import Order, Wallet
+from .utils import *
 
 
 @login_required
@@ -17,7 +18,6 @@ def home(request):
     }
 
     return render(request, 'users/home.html', context)
-
 
 @login_required
 def sell(request):
@@ -50,7 +50,7 @@ def sell(request):
 
     return render(request, 'mainApp/order.html', context)
 
-
+@login_required
 def delete_order (request, pk):
 
     order = getOrder(pk)
@@ -81,49 +81,3 @@ def buy_btc(request, pk):
     transaction(buyer_wallet, seller_wallet, order  )
     messages.success(request, "Your order has been placed successfully")
     return redirect('home')
-
-
-def getUserBalance(user):
-    balance = {
-        'btc': Wallet.objects.filter(user=user).first().btc_balance,
-        'money': Wallet.objects.filter(user=user).first().money_balance
-    }
-
-    return balance
-
-def getOrder(pk):
-    for order in Order.objects.all(): 
-        if(str(order.pk) == pk): 
-            return order
-
-def canSell(user_wallet, btc_quantity):
-    if(user_wallet.btc_balance < btc_quantity):
-        return False
-
-    return True
-
-
-def canBuy(user_wallet, price):
-    if(user_wallet.money_balance < price):
-        return False
-
-    return True
-
-
-def transaction(buyer_wallet, seller_wallet, order):
-    buyer_wallet.btc_balance += order.btc_quantity
-    seller_wallet.money_balance += order.price 
-
-    order.order_status = 'completed'
-    buyer_wallet.save()
-    seller_wallet.save()
-    order.save()
-
-    transaction = Transaction(buyer = buyer_wallet.user, 
-                              seller = seller_wallet.user,
-                              btc_quantity = order.btc_quantity, 
-                              price = order.price,
-                              datetime = datetime.now() ) 
-
-    transaction.save()
- 
