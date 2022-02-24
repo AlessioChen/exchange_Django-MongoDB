@@ -12,9 +12,7 @@
 
 <div class="flex">
 	<div class="m-auto">
-
 	{% if messages %} 
-
 		{% for message in messages%}
 			{% if message.tags == "success" %} 
 			<div class="bg-green-200 border-green-600 text-green-600 border-l-4 p-4" role="alert">
@@ -29,26 +27,20 @@
 					<p>  {{message}}</p>
 				</div>
 		{% endif %}
+	{% endfor%} 
+{% endif %}
 
-		{% endfor%} 
-	{% endif %}
 
-
-	{% if balance %}
-		<h1 class="text-xl font-bold">You have: {{balance.btc}}  BTC</h1>
-		<h1 class="text-xl font-bold">You have: {{balance.money}} $</h1>
-	{% endif %}
+{% if balance %}
+	<h1 class="text-xl font-bold">You have: {{balance.btc}}  BTC</h1>
+	<h1 class="text-xl font-bold">You have: {{balance.money}} $</h1>
+{% endif %}
 	<main class="mt-2"> 
 
 		{% block content %} {% endblock content %}
  </main>
 	</div>
 </div>
-
-
-
-
-
 </div>
 </body>
 

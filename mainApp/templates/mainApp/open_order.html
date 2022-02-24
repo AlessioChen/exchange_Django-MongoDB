@@ -1,0 +1,16 @@
+<table class="table p-4 bg-white shadow rounded-lg">
+  <thead>
+    <tr>
+      <th class="border-b-2 p-4 dark:border-dark-5 whitespace-nowrap font-normal text-blue-600"> # </th>
+      <th class="border-b-2 p-4 dark:border-dark-5 whitespace-nowrap font-normal text-blue-600"> Price </th>
+      <th class="border-b-2 p-4 dark:border-dark-5 whitespace-nowrap font-normal text-blue-600"> BTC Quantity </th>
+      <th class="border-b-2 p-4 dark:border-dark-5 whitespace-nowrap font-normal text-blue-600"> Actions </th>
+    </tr>
+  </thead>
+  <tbody> {% for order in sell_orders %} <tr class="text-gray-700">
+      <td class="border-b-2 p-4 dark:border-dark-5"> {{forloop.counter}} </td>
+      <td class="border-b-2 p-4 dark:border-dark-5"> {{order.price}} $ </td>
+      <td class="border-b-2 p-4 dark:border-dark-5"> {{order.btc_quantity}} </td>
+      <td class="border-b-2 p-4 dark:border-dark-5 text-red-500"> <a href="{% url 'delete_order' order.pk %} "> Delete </a> </td>
+    </tr> {% endfor %} </tbody>
+</table>

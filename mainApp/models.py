@@ -27,10 +27,10 @@ class Order(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   modified = models.DateTimeField(auto_now=True)
 
-class Trade(models.Model):
+class Transaction(models.Model):
   _id = ObjectIdField()
-  buyer_user = models.ForeignKey(User, related_name='buyer',on_delete=models.CASCADE)
-  seller_user = models.ForeignKey(User, related_name='seller',on_delete=models.CASCADE)
+  buyer= models.ForeignKey(User, related_name='buyer',on_delete=models.CASCADE)
+  seller = models.ForeignKey(User, related_name='seller',on_delete=models.CASCADE)
   btc_quantity = models.FloatField()
   price = models.FloatField()
   datetime = models.DateTimeField(auto_now_add=True)

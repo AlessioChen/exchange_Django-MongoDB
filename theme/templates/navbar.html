@@ -4,8 +4,12 @@
       <div class=" flex items-center">
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
+            {% if user.is_authenticated %}
+              <p class="text-white">Hello {{user}}</p>
+            {% endif %}
           <a a class="text-gray-300  hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="{% url 'home' %}"> Home </a>
           {% if user.is_authenticated %}
+          
             <a class="text-gray-800 dark:text-white  hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="{% url 'logout' %}"> Logout </a>
           {% else %}
             <a class="text-gray-800 dark:text-white  hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="{% url 'login' %}"> Login </a>
@@ -19,6 +23,9 @@
     </div>
   </div>
   <div class="md:hidden">
+    {% if user.is_authenticated %}
+    <p class="text-white">Hello {{user}}</p>
+  {% endif %}
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       {% if user.is_authenticated %}
       <a class="text-gray-800 dark:text-white  hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium" href="{% url 'logout' %}"> Logout </a>

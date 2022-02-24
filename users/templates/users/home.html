@@ -1,26 +1,27 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags %} 
 
 {% block content %}
-
 <!-- Orders table -->
- <h1 class="font-bold text-center text-2xl" >Your orders </h1>
-{%include 'mainApp/orders_table.html' %}
-
-
-<!-- Actions button -->
-<p class="text-2xl text-center font-bold mt-2" >ACTIONS</p>
-<div class="grid grid-cols-2 mt-2 space-x-2">
-  <a href="{% url 'sell' %}" type="button" class="py-2 px-4  bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg ">
-      SELL BTC
-  </a>
-  <a href="{% url 'buy' %}" type="button" class="py-2 px-4  bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-indigo-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg ">
-      BUY BTC
-  </a>
-
+<div class="grid grid-cols-2 space-x-4">
+  <div>
+    <h1 class="font-bold text-center text-2xl">Your open sell orders </h1>
+    {%include 'mainApp/open_order.html' %}
+  </div>
+  <div>
+    <h1 class="font-bold text-center text-2xl">Market orders</h1>
+    {%include 'mainApp/market_table.html' %}
+  </div>
 
 </div>
 
+
+
+<!-- Actions button -->
+<p class="text-2xl font-bold mt-2">ACTION</p>
+<div class="grid grid-cols-2 mt-2 space-x-2">
+  <a href="{% url 'sell' %}" type="button" class="py-2 px-4  bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg "> SELL BTC </a>
+  
 
 
 {% endblock content %}
