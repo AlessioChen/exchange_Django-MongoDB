@@ -27,6 +27,7 @@ class Order(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   modified = models.DateTimeField(auto_now=True)
 
+
 class Transaction(models.Model):
   _id = ObjectIdField()
   buyer= models.ForeignKey(User, related_name='buyer',on_delete=models.CASCADE)

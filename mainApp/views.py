@@ -1,8 +1,15 @@
 
+from django.forms.models import model_to_dict
+from django.forms import model_to_dict
+from django.db.models import Model
+from django.core.serializers.json import DjangoJSONEncoder
+from pyexpat import model
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.core import serializers
 from mainApp.forms import OrderCreationForm
 from mainApp.models import Order, Wallet
 from .utils import *
@@ -18,6 +25,7 @@ def home(request):
     }
 
     return render(request, 'users/home.html', context)
+
 
 @login_required
 def sell(request):
@@ -50,34 +58,68 @@ def sell(request):
 
     return render(request, 'mainApp/order.html', context)
 
+
 @login_required
-def delete_order (request, pk):
+def delete_order(request, pk):
 
     order = getOrder(pk)
-    user = order.user 
-    wallet = Wallet.objects.filter(user = user).first()
+    user = order.user
+    wallet = Wallet.objects.filter(user=user).first()
     wallet.btc_balance += order.btc_quantity
     wallet.save()
     refund_btc = order.btc_quantity
     order.delete()
-    messages.success(request, f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC")
-   
+    messages.success(
+        request, f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC")
 
     return redirect('home')
+
 
 @login_required
 def buy_btc(request, pk):
 
     order = getOrder(pk)
-    buyer = request.user 
-    buyer_wallet = Wallet.objects.filter(user= buyer).first()
+    buyer = request.user
+    buyer_wallet = Wallet.objects.filter(user=buyer).first()
     seller = order.user
-    seller_wallet = Wallet.objects.filter(user = seller).first()
+    seller_wallet = Wallet.objects.filter(user=seller).first()
 
     if not canBuy(buyer_wallet, order.price):
         messages.error(request, 'You do not have enouth $ to buy ')
         return redirect('home')
 
-    transaction(buyer_wallet, seller_wallet, order  )
+    transaction(buyer_wallet, seller_wallet, order)
     messages.success(request, "Your order has been placed successfully")
     return redirect('home')
+
+
+class ExtendedEncoder(DjangoJSONEncoder):
+
+    def default(self, o):
+
+        if isinstance(o, Model):
+            return model_to_dict(o)
+
+        return super().default(o)
+
+
+@login_required
+def open_orders(request):
+    open_order = []
+    for order in Order.objects.filter(order_status="pending"):
+        open_order.append(
+            {
+                "id": str(order.pk),
+                "user":  str(order.user),
+                "type" : order.type,
+                "order_status": order.order_status, 
+                "price": order.price, 
+                "btc_quantity": order.btc_quantity
+
+            }
+        )
+
+    res = {
+        'orders ':  open_order
+    }
+    return JsonResponse(res)
