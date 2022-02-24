@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
@@ -61,6 +62,7 @@ def delete_order (request, pk):
     order.delete()
     messages.success(request, f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC")
    
+
     return redirect('home')
 
 @login_required
@@ -76,16 +78,10 @@ def buy_btc(request, pk):
         messages.error(request, 'You do not have enouth $ to buy ')
         return redirect('home')
 
-    buyer_wallet.btc_balance += order.btc_quantity
-    seller_wallet.money_balance += order.price 
-
-    order.order_status = 'completed'
-    buyer_wallet.save()
-    seller_wallet.save()
-    order.save()
-
-
+    transaction(buyer_wallet, seller_wallet, order  )
+    messages.success(request, "Your order has been placed successfully")
     return redirect('home')
+
 
 def getUserBalance(user):
     balance = {
@@ -96,7 +92,6 @@ def getUserBalance(user):
     return balance
 
 def getOrder(pk):
-   
     for order in Order.objects.all(): 
         if(str(order.pk) == pk): 
             return order
@@ -115,31 +110,20 @@ def canBuy(user_wallet, price):
     return True
 
 
-def transaction(buyer, buyer_order):
+def transaction(buyer_wallet, seller_wallet, order):
+    buyer_wallet.btc_balance += order.btc_quantity
+    seller_wallet.money_balance += order.price 
 
-    buyer_wallet = Wallet.objects.filter(user=buyer)
-    for seller_order in Order.objects.filter(type="sell", order_status="pending").exclude(user=buyer):
-        print(buyer_order.price, seller_order.price)
-        if buyer_order.price >= seller_order.price:
+    order.order_status = 'completed'
+    buyer_wallet.save()
+    seller_wallet.save()
+    order.save()
 
-            seller = seller_order.user
+    transaction = Transaction(buyer = buyer_wallet.user, 
+                              seller = seller_wallet.user,
+                              btc_quantity = order.btc_quantity, 
+                              price = order.price,
+                              datetime = datetime.now() ) 
 
-            seller_wallet = Wallet.objects.filter(user=seller)
-            seller_wallet.money_balance += buyer_order.price
-            buyer_wallet.btc_balance += seller_order.btc_quantity
-
-            seller_order.order_status = 'completed'
-            buyer_order.order_status = 'completed'
-
-            seller_order.save()
-            buyer_order.save()
-            seller_wallet.save()
-            buyer_wallet.save()
-
-            transaction = Transaction(buyer=buyer,
-                                      seller=seller,
-                                      btc_quantity=seller_order.btc_bance,
-                                      price=buyer_order.price)
-
-            transaction.save()
-            return
+    transaction.save()
+ 
