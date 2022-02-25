@@ -1,15 +1,10 @@
-
-from django.forms.models import model_to_dict
-from django.forms import model_to_dict
-from django.db.models import Model
-from django.core.serializers.json import DjangoJSONEncoder
-from pyexpat import model
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.core import serializers
+
 from mainApp.forms import OrderCreationForm
 from mainApp.models import Order, Wallet
 from .utils import *
@@ -93,16 +88,6 @@ def buy_btc(request, pk):
     return redirect('home')
 
 
-class ExtendedEncoder(DjangoJSONEncoder):
-
-    def default(self, o):
-
-        if isinstance(o, Model):
-            return model_to_dict(o)
-
-        return super().default(o)
-
-
 @login_required
 def open_orders(request):
     open_order = []
@@ -111,9 +96,9 @@ def open_orders(request):
             {
                 "id": str(order.pk),
                 "user":  str(order.user),
-                "type" : order.type,
-                "order_status": order.order_status, 
-                "price": order.price, 
+                "type": order.type,
+                "order_status": order.order_status,
+                "price": order.price,
                 "btc_quantity": order.btc_quantity
 
             }
@@ -123,3 +108,31 @@ def open_orders(request):
         'orders ':  open_order
     }
     return JsonResponse(res)
+
+
+@login_required
+def profit_all_users(request):
+
+    profits = {}
+    for user in User.objects.all():
+        item = {
+            user.username: {
+                'btc_profit': 0,
+                'money_profit': 0
+
+            }
+        }
+        profits.update(item)
+    
+    for transaction in Transaction.objects.all(): 
+        buyer = transaction.buyer.username
+        seller = transaction.seller.username
+
+        profits[buyer]['btc_profit'] += transaction.btc_quantity 
+        profits[buyer]['money_profit'] -= transaction.price 
+
+        profits[seller]['btc_profit'] -= transaction.btc_quantity 
+        profits[seller]['money_profit'] += transaction.price
+        
+    
+    return JsonResponse(profits)

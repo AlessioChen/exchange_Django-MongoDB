@@ -1,4 +1,3 @@
-
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
@@ -6,8 +5,6 @@ from mainApp.utils import generate_random_number
 
 from .forms import UserRegisterForm
 from mainApp.models import Wallet
-
-
 
 
 def register(request):
@@ -37,3 +34,5 @@ def register(request):
         'form': form,
     }
     return render(request, 'users/register.html', context)
+
+
