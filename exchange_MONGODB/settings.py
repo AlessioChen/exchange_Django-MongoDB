@@ -34,7 +34,7 @@ SECRET_KEY = '6#ozim&8d_3=a^m38d2nx=kwi1*awy*=#-76r80_c^(+u!zj69'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['https://exchange-django-mongodb.herokuapp.com/', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
