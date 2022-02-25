@@ -46,9 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #own
-    'users', 
-    'crispy_forms', 
+    # own
+    'users',
+    'crispy_forms',
     'mainApp',
     'tailwind',
     'theme',
@@ -57,14 +57,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #own 
+    # own
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
@@ -96,6 +96,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'engine',
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+                'host': 'mongodb+srv://admin:admin@cluster0.anglw.mongodb.net/cluster0?retryWrites=true&w=majority'
+        }
     }
 }
 
