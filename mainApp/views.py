@@ -14,12 +14,10 @@ from .utils import *
 def home(request):
 
     context = {
-        "sell_orders": Order.objects.filter(
-            user=request.user, type="sell", order_status="pending"
-        ),
+        "open_orders": Order.objects.filter(user=request.user, order_status="pending"),
         "balance": getUserBalance(request.user),
-        "buy_orders": Order.objects.exclude(user=request.user).filter(
-            type="sell", order_status="pending"
+        "marker_orders": Order.objects.exclude(user=request.user).filter(
+            order_status="pending"
         ),
     }
 
@@ -34,6 +32,7 @@ def sell(request):
         if form.is_valid():
             user_wallet = Wallet.objects.filter(user=request.user).first()
             btc_quantity = form.cleaned_data["btc_quantity"]
+
             if not canSell(user_wallet, btc_quantity):
                 messages.error(request, "You do not have enouth BTC to sell ")
                 return redirect("home")
@@ -44,9 +43,43 @@ def sell(request):
             order.order_status = "pending"
             order.save()
 
-            user_wallet.btc_balance -= btc_quantity
-            user_wallet.save()
+            match_sell_order(order)
+
             messages.success(request, "Your sell order has been placed!")
+
+            return redirect("home")
+
+    context = {
+        "form": form,
+        "orders": Order.objects.filter(user=request.user),
+        "balance": getUserBalance(request.user),
+    }
+
+    return render(request, "mainApp/order.html", context)
+
+
+@login_required
+def buy(request):
+    form = OrderCreationForm()
+    if request.method == "POST":
+        form = OrderCreationForm(request.POST)
+        if form.is_valid():
+            user_wallet = Wallet.objects.filter(user=request.user).first()
+            price = form.cleaned_data["price"]
+            btc_quantity = form.cleaned_data["btc_quantity"]
+            if not canBuy(user_wallet, price, btc_quantity):
+                messages.error(request, "You do not have enouth $ to buy ")
+                return redirect("home")
+
+            order = form.save()
+            order.user = request.user
+            order.type = "buy"
+            order.order_status = "pending"
+            order.save()
+
+            # user_wallet.money_balance -= price
+            # user_wallet.save()
+            messages.success(request, "Your buy order has been placed!")
             return redirect("home")
 
     context = {
