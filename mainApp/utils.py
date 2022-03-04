@@ -83,8 +83,10 @@ def sell_transaction(sell_order, buy_order):
     if buy_order.btc_quantity >= sell_order.btc_quantity:
         seller_wallet.money_balance += sell_order.price * sell_order.btc_quantity
         buyer_wallet.btc_balance += sell_order.btc_quantity
+
         if buy_order.btc_quantity > sell_order.btc_quantity:
             buyer_wallet.money_balance -= buy_order.price * sell_order.btc_quantity
+
         if buy_order.btc_quantity == sell_order.btc_quantity:
             buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
 
@@ -96,3 +98,13 @@ def sell_transaction(sell_order, buy_order):
 
     seller_wallet.save()
     buyer_wallet.save()
+
+    transaction = Transaction(
+        buyer=buyer_wallet.user,
+        seller=seller_wallet.user,
+        btc_quantity=sell_order.btc_quantity,
+        price=buy_order.price,
+        datetime=datetime.now(),
+    )
+
+    transaction.save()

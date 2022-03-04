@@ -95,35 +95,12 @@ def buy(request):
 def delete_order(request, pk):
 
     order = getOrder(pk)
-    user = order.user
-    wallet = Wallet.objects.filter(user=user).first()
-    wallet.btc_balance += order.btc_quantity
-    wallet.save()
-    refund_btc = order.btc_quantity
     order.delete()
     messages.success(
         request,
-        f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC",
+        f"Your sell order has been cancelled",
     )
 
-    return redirect("home")
-
-
-@login_required
-def buy_btc(request, pk):
-
-    order = getOrder(pk)
-    buyer = request.user
-    buyer_wallet = Wallet.objects.filter(user=buyer).first()
-    seller = order.user
-    seller_wallet = Wallet.objects.filter(user=seller).first()
-
-    if not canBuy(buyer_wallet, order.price):
-        messages.error(request, "You do not have enouth $ to buy ")
-        return redirect("home")
-
-    transaction(buyer_wallet, seller_wallet, order)
-    messages.success(request, "Your order has been placed successfully")
     return redirect("home")
 
 
@@ -159,9 +136,9 @@ def profit_all_users(request):
         seller = transaction.seller.username
 
         profits[buyer]["btc_profit"] += transaction.btc_quantity
-        profits[buyer]["money_profit"] -= transaction.price
+        profits[buyer]["money_profit"] -= transaction.price * transaction.btc_quantity
 
         profits[seller]["btc_profit"] -= transaction.btc_quantity
-        profits[seller]["money_profit"] += transaction.price
+        profits[seller]["money_profit"] += transaction.price * transaction.btc_quantity
 
     return JsonResponse(profits)
