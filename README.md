@@ -17,6 +17,7 @@ Project build with python framework using Django. The platform has the following
 - [Djongo](https://github.com/doableware/djongo) 
 - [Whitenoise](http://whitenoise.evans.io/en/stable/) 
 - [Guinicorn](https://docs.gunicorn.org/en/stable/run.html)
+- [Black](https://black.readthedocs.io/en/latest/getting_started.html)
 
 # Installation 
    -  Set a virtual environment
