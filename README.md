@@ -21,13 +21,15 @@ Project build with python framework using Django. The platform has the following
 
 # Installation 
    -  Set a virtual environment
-    - Install requirements.txt
-    - Run migration excecuting with: 
+   - Install requirements.txt
+   - Run migration excecuting with: 
+
 > `python manage.py migrate` 
 
 To run the Django development server and tailwind in dev mode, execute the following commands: 
 
 > `python manage.py runserver` 
+
 > `python manage.py tailwind start` 
 
 Next, open the following URL in your browser: 
