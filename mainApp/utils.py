@@ -48,28 +48,27 @@ def match_sell_order(sell_order):
 
     for buy_order in buy_orders:
         if sell_order.order_status == "completed":
-            continue
+            break
 
-        if buy_order.btc_quantity == sell_order.btc_quantity:
+        if buy_order.btc_quantity >= sell_order.btc_quantity:
             sell_order.price = buy_order.price
             sell_order.order_status = "completed"
-            buy_order.order_status = "completed"
-            sell_transaction(sell_order, buy_order)
 
-        elif buy_order.btc_quantity > sell_order.btc_quantity:
-            sell_order.price = buy_order.price
-            sell_order.order_status = "completed"
-            buy_order.btc_quantity -= sell_order.btc_quantity
+            if buy_order.btc_quantity > sell_order.btc_quantity:
+                buy_order.btc_quantity -= sell_order.btc_quantity
+
             if buy_order.btc_quantity == 0:
                 buy_order.order_status = "completed"
+
             sell_transaction(sell_order, buy_order)
 
-        elif buy_order.btc_quantity < sell_order.btc_quantity:
+        if buy_order.btc_quantity < sell_order.btc_quantity:
+            buy_order.order_status = "completed"
+
             sell_order.btc_quantity -= buy_order.btc_quantity
 
             if sell_order.btc_quantity == 0:
                 sell_order.order_status = "completed"
-            buy_order.order_status = "completed"
 
             sell_transaction(sell_order, buy_order)
 
@@ -81,17 +80,15 @@ def sell_transaction(sell_order, buy_order):
     seller_wallet = Wallet.objects.filter(user=sell_order.user).first()
     buyer_wallet = Wallet.objects.filter(user=buy_order.user).first()
 
-    if buy_order.btc_quantity == sell_order.btc_quantity:
+    if buy_order.btc_quantity >= sell_order.btc_quantity:
         seller_wallet.money_balance += sell_order.price * sell_order.btc_quantity
-
         buyer_wallet.btc_balance += sell_order.btc_quantity
-        buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
-    elif buy_order.btc_quantity > sell_order.btc_quantity:
-        seller_wallet.money_balance += sell_order.price * sell_order.btc_quantity
+        if buy_order.btc_quantity > sell_order.btc_quantity:
+            buyer_wallet.money_balance -= buy_order.price * sell_order.btc_quantity
+        if buy_order.btc_quantity == sell_order.btc_quantity:
+            buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
 
-        buyer_wallet.btc_balance += sell_order.btc_quantity
-        buyer_wallet.btc_balance -= buy_order.price * sell_order.btc_quantity
-    elif buy_order.btc_quantity < sell_order.btc_quantity:
+    if buy_order.btc_quantity < sell_order.btc_quantity:
         seller_wallet.money_balance += buy_order.price * buy_order.btc_quantity
 
         buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
