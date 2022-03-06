@@ -1,6 +1,8 @@
+from ast import Or
 from distutils.log import WARN
 import random
 from tkinter import W
+from turtle import update
 from mainApp.models import Order, Transaction, Wallet
 from datetime import datetime
 
@@ -38,73 +40,97 @@ def canBuy(user_wallet, price, btc_quanty):
     return True
 
 
-def match_sell_order(sell_order):
+def update_orders(sell_order, buy_order):
+    # full fill sell and buy
+    if sell_order.btc_quantity == buy_order.btc_quantity:
+        sell_order.order_status = "completed"
+        buy_order.order_status = "completed"
 
-    buy_orders = (
-        Order.objects.order_by("-modified")
-        .filter(type="buy", order_status="pending")
-        .exclude(user=sell_order.user)
-    )
+    # full fill sell and partially fill buy
+    elif sell_order.btc_quantity > buy_order.btc_quantity:
+        sell_order.btc_quantity -= buy_order.btc_quantity
+        buy_order.order_status = "completed"
 
-    for buy_order in buy_orders:
-        if sell_order.order_status == "completed":
-            break
+        # full fill buy and partally fill sell
+    elif sell_order.btc_quantity < buy_order.btc_quantity:
+        buy_order.btc_quantity -= sell_order.btc_quantity
+        sell_order.order_status = "completed"
 
-        if buy_order.btc_quantity >= sell_order.btc_quantity:
-            sell_order.price = buy_order.price
-            sell_order.order_status = "completed"
-
-            if buy_order.btc_quantity > sell_order.btc_quantity:
-                buy_order.btc_quantity -= sell_order.btc_quantity
-
-            if buy_order.btc_quantity == 0:
-                buy_order.order_status = "completed"
-
-            sell_transaction(sell_order, buy_order)
-
-        if buy_order.btc_quantity < sell_order.btc_quantity:
-            buy_order.order_status = "completed"
-
-            sell_order.btc_quantity -= buy_order.btc_quantity
-
-            if sell_order.btc_quantity == 0:
-                sell_order.order_status = "completed"
-
-            sell_transaction(sell_order, buy_order)
-
-        sell_order.save()
-        buy_order.save()
+    sell_order.save()
+    buy_order.save()
 
 
-def sell_transaction(sell_order, buy_order):
+def transaction(sell_order, buy_order):
     seller_wallet = Wallet.objects.filter(user=sell_order.user).first()
     buyer_wallet = Wallet.objects.filter(user=buy_order.user).first()
-
-    if buy_order.btc_quantity >= sell_order.btc_quantity:
-        seller_wallet.money_balance += sell_order.price * sell_order.btc_quantity
-        buyer_wallet.btc_balance += sell_order.btc_quantity
-
-        if buy_order.btc_quantity > sell_order.btc_quantity:
-            buyer_wallet.money_balance -= buy_order.price * sell_order.btc_quantity
-
-        if buy_order.btc_quantity == sell_order.btc_quantity:
-            buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
-
-    if buy_order.btc_quantity < sell_order.btc_quantity:
-        seller_wallet.money_balance += buy_order.price * buy_order.btc_quantity
-
-        buyer_wallet.money_balance -= buy_order.price * buy_order.btc_quantity
-        buyer_wallet.btc_balance += buy_order.btc_quantity
-
-    seller_wallet.save()
-    buyer_wallet.save()
-
+    # save transaction
     transaction = Transaction(
         buyer=buyer_wallet.user,
         seller=seller_wallet.user,
-        btc_quantity=sell_order.btc_quantity,
+        btc_quantity=buy_order.btc_quantity,
         price=buy_order.price,
         datetime=datetime.now(),
     )
 
     transaction.save()
+
+
+def match_buy_order(buy_order):
+    sell_orders_list = (
+        Order.objects.filter(
+            type="sell", order_status="pending", price__lte=buy_order.price
+        )
+        .exclude(user=buy_order.user)
+        .order_by("price")
+    )
+
+    for sell_order in sell_orders_list:
+
+        seller_wallet = Wallet.objects.filter(user=sell_order.user).first()
+        buyer_wallet = Wallet.objects.filter(user=buy_order.user).first()
+
+        buy_order.price = sell_order.price
+        buy_order.save()
+
+        update_orders(sell_order, buy_order)
+
+        seller_wallet.btc_balance -= sell_order.btc_quantity
+        seller_wallet.money_balance += sell_order.btc_quantity * sell_order.price
+        seller_wallet.save()
+
+        buyer_wallet.btc_balance += sell_order.btc_quantity
+        buyer_wallet.money_balance -= sell_order.btc_quantity * sell_order.price
+        buyer_wallet.save()
+
+        transaction(sell_order, buy_order)
+
+
+def match_sell_order(sell_order):
+
+    buy_orders_list = (
+        Order.objects.filter(
+            type="buy", order_status="pending", price__gte=sell_order.price
+        )
+        .exclude(user=sell_order.user)
+        .order_by("-price")
+    )
+
+    for buy_order in buy_orders_list:
+
+        seller_wallet = Wallet.objects.filter(user=sell_order.user).first()
+        buyer_wallet = Wallet.objects.filter(user=buy_order.user).first()
+
+        sell_order.price = buy_order.price
+        sell_order.save()
+
+        update_orders(sell_order, buy_order)
+
+        seller_wallet.btc_balance -= buy_order.btc_quantity
+        seller_wallet.money_balance += buy_order.btc_quantity * buy_order.price
+        seller_wallet.save()
+
+        buyer_wallet.btc_balance += buy_order.btc_quantity
+        buyer_wallet.money_balance -= buy_order.btc_quantity * buy_order.price
+        buyer_wallet.save()
+
+        transaction(sell_order, buy_order)

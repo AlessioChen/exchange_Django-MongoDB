@@ -43,9 +43,8 @@ def sell(request):
             order.order_status = "pending"
             order.save()
 
-            match_sell_order(order)
-
             messages.success(request, "Your sell order has been placed!")
+            match_sell_order(order)
 
             return redirect("home")
 
@@ -77,9 +76,9 @@ def buy(request):
             order.order_status = "pending"
             order.save()
 
-            # user_wallet.money_balance -= price
-            # user_wallet.save()
             messages.success(request, "Your buy order has been placed!")
+            match_buy_order(order)
+
             return redirect("home")
 
     context = {
