@@ -14,12 +14,10 @@ from .utils import *
 def home(request):
 
     context = {
-        "sell_orders": Order.objects.filter(
-            user=request.user, type="sell", order_status="pending"
-        ),
+        "open_orders": Order.objects.filter(user=request.user, order_status="pending"),
         "balance": getUserBalance(request.user),
-        "buy_orders": Order.objects.exclude(user=request.user).filter(
-            type="sell", order_status="pending"
+        "marker_orders": Order.objects.exclude(user=request.user).filter(
+            order_status="pending"
         ),
     }
 
@@ -34,6 +32,7 @@ def sell(request):
         if form.is_valid():
             user_wallet = Wallet.objects.filter(user=request.user).first()
             btc_quantity = form.cleaned_data["btc_quantity"]
+
             if not canSell(user_wallet, btc_quantity):
                 messages.error(request, "You do not have enouth BTC to sell ")
                 return redirect("home")
@@ -44,9 +43,42 @@ def sell(request):
             order.order_status = "pending"
             order.save()
 
-            user_wallet.btc_balance -= btc_quantity
-            user_wallet.save()
             messages.success(request, "Your sell order has been placed!")
+            match_sell_order(order)
+
+            return redirect("home")
+
+    context = {
+        "form": form,
+        "orders": Order.objects.filter(user=request.user),
+        "balance": getUserBalance(request.user),
+    }
+
+    return render(request, "mainApp/order.html", context)
+
+
+@login_required
+def buy(request):
+    form = OrderCreationForm()
+    if request.method == "POST":
+        form = OrderCreationForm(request.POST)
+        if form.is_valid():
+            user_wallet = Wallet.objects.filter(user=request.user).first()
+            price = form.cleaned_data["price"]
+            btc_quantity = form.cleaned_data["btc_quantity"]
+            if not canBuy(user_wallet, price, btc_quantity):
+                messages.error(request, "You do not have enouth $ to buy ")
+                return redirect("home")
+
+            order = form.save()
+            order.user = request.user
+            order.type = "buy"
+            order.order_status = "pending"
+            order.save()
+
+            messages.success(request, "Your buy order has been placed!")
+            match_buy_order(order)
+
             return redirect("home")
 
     context = {
@@ -62,35 +94,12 @@ def sell(request):
 def delete_order(request, pk):
 
     order = getOrder(pk)
-    user = order.user
-    wallet = Wallet.objects.filter(user=user).first()
-    wallet.btc_balance += order.btc_quantity
-    wallet.save()
-    refund_btc = order.btc_quantity
     order.delete()
     messages.success(
         request,
-        f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC",
+        f"Your sell order has been cancelled",
     )
 
-    return redirect("home")
-
-
-@login_required
-def buy_btc(request, pk):
-
-    order = getOrder(pk)
-    buyer = request.user
-    buyer_wallet = Wallet.objects.filter(user=buyer).first()
-    seller = order.user
-    seller_wallet = Wallet.objects.filter(user=seller).first()
-
-    if not canBuy(buyer_wallet, order.price):
-        messages.error(request, "You do not have enouth $ to buy ")
-        return redirect("home")
-
-    transaction(buyer_wallet, seller_wallet, order)
-    messages.success(request, "Your order has been placed successfully")
     return redirect("home")
 
 
@@ -126,9 +135,9 @@ def profit_all_users(request):
         seller = transaction.seller.username
 
         profits[buyer]["btc_profit"] += transaction.btc_quantity
-        profits[buyer]["money_profit"] -= transaction.price
+        profits[buyer]["money_profit"] -= transaction.price * transaction.btc_quantity
 
         profits[seller]["btc_profit"] -= transaction.btc_quantity
-        profits[seller]["money_profit"] += transaction.price
+        profits[seller]["money_profit"] += transaction.price * transaction.btc_quantity
 
     return JsonResponse(profits)
