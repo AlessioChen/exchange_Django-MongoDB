@@ -1,8 +1,4 @@
-from ast import Or
-from distutils.log import WARN
 import random
-from tkinter import W
-from turtle import update
 from mainApp.models import Order, Transaction, Wallet
 from datetime import datetime
 
