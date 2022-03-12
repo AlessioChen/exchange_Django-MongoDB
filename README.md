@@ -7,7 +7,7 @@ Project build with python framework using Django. The platform has the following
 - It automatically assigns each registered user a random amount of money and BTC. 
 - Each user can sell BTC and buy BTC and the transactions are saved con MongoDB.
 - Endpoint to get all active sell orders that are not matched yet. 
-- Endpoint to see all users profits
+- Endpoint to see all user's profits
 
 # Technologies
 - [Python](https://www.python.org/)
