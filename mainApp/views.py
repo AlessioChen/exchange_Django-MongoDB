@@ -43,6 +43,9 @@ def sell(request):
             order.order_status = "pending"
             order.save()
 
+            user_wallet.btc_balance -= btc_quantity
+            user_wallet.save()
+
             messages.success(request, "Your sell order has been placed!")
             match_sell_order(order)
 
@@ -76,6 +79,9 @@ def buy(request):
             order.order_status = "pending"
             order.save()
 
+            user_wallet.money_balance -= btc_quantity * price
+            user_wallet.save()
+
             messages.success(request, "Your buy order has been placed!")
             match_buy_order(order)
 
@@ -94,11 +100,29 @@ def buy(request):
 def delete_order(request, pk):
 
     order = getOrder(pk)
+    user = order.user
+    wallet = Wallet.objects.filter(user=user).first()
+
+    if order.type == "sell":
+        refund_btc = order.btc_quantity
+        wallet.btc_balance += refund_btc
+        wallet.save()
+        messages.success(
+            request,
+            f"Your sell order has been cancelled and we have refunded you {refund_btc} BTC",
+        )
+
+    elif order.type == "buy":
+        refund_money = order.btc_quantity * order.price
+        wallet.money_balance += refund_money
+        wallet.save()
+        refund_btc = order.btc_quantity
+        messages.success(
+            request,
+            f"Your buy order has been cancelled and we have refunded you {refund_money} $",
+        )
+
     order.delete()
-    messages.success(
-        request,
-        f"Your sell order has been cancelled",
-    )
 
     return redirect("home")
 
