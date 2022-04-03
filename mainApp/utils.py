@@ -87,10 +87,10 @@ def match_buy_order(buy_order):
         update_orders(sell_order, buy_order)
 
         seller_wallet.money_balance += sell_order.btc_quantity * sell_order.price
-        seller_wallet.save()
+        seller_wallet.save(update_fields=["money_balance"])
 
         buyer_wallet.btc_balance += sell_order.btc_quantity
-        buyer_wallet.save()
+        buyer_wallet.save(update_fields=["btc_balance"])
 
         transaction(sell_order, buy_order)
 
@@ -112,9 +112,9 @@ def match_sell_order(sell_order):
         update_orders(sell_order, buy_order)
 
         seller_wallet.money_balance += buy_order.btc_quantity * buy_order.price
-        seller_wallet.save()
+        seller_wallet.save(update_fields=["money_balance"])
 
         buyer_wallet.btc_balance += buy_order.btc_quantity
-        buyer_wallet.save()
+        buyer_wallet.save(update_fields=["btc_balance"])
 
         transaction(sell_order, buy_order)

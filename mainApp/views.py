@@ -116,7 +116,7 @@ def delete_order(request, pk):
         refund_money = order.btc_quantity * order.price
         wallet.money_balance += refund_money
         wallet.save()
-        refund_btc = order.btc_quantity
+
         messages.success(
             request,
             f"Your buy order has been cancelled and we have refunded you {refund_money} $",
